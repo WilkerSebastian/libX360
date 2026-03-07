@@ -1,14 +1,22 @@
 mod file_format;
 mod read_file;
 mod table_byte_to_note;
+mod beep;
+mod sleep;
+mod freq_table;
 
 use std::env;
 use std::path::Path;
 
 use read_file::read;
 use table_byte_to_note::get_note_by_byte;
+use beep::beep;
+use sleep::sleep;
+use freq_table::FREQ_TABLE;
 
 fn main() {
+
+    let vol: f32 = 0.3;
     
     let args: Vec<String> = env::args().collect();
 
@@ -57,7 +65,27 @@ fn main() {
             None => string_note = "none",
         };
         
-        println!("[{}]: {}ms", string_note, pair.ms);
+        println!("[MELODY] {}: {}ms", string_note, pair.ms);
+
+    }
+
+    for pair in &x360_file.pairs  {
+
+        if pair.note == 255 {
+        
+            println!("[SONG] 0Hz");
+
+            sleep(pair.ms);
+
+            continue;
+
+        }
+
+        let freq: f32 = FREQ_TABLE[pair.note as usize];
+
+        println!("[SONG] {}Hz", freq);
+        
+        beep(freq, pair.ms, vol);
 
     }
 

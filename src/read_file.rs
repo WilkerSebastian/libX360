@@ -4,7 +4,6 @@ use std::path::Path;
 
 use crate::file_format::{AudioBlock, X360File};
 
-
 pub fn read(path: &Path) -> io::Result<X360File> {
 
     let file = File::open(path)?;
