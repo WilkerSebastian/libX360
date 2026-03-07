@@ -7,6 +7,7 @@ mod freq_table;
 
 use std::env;
 use std::path::Path;
+use std::cmp::min;
 
 use read_file::read;
 use table_byte_to_note::get_note_by_byte;
@@ -22,7 +23,7 @@ const BLUE: &str = "\x1b[34m";
 
 fn main() {
 
-    let vol: f32 = 0.3;
+    let mut vol: f32 = 0.3;
     
     let args: Vec<String> = env::args().collect();
 
@@ -43,6 +44,29 @@ fn main() {
 
     println!("{}[INFO]{} caminho lido: {}", BLUE, RESET, file_path);
 
+    for i in 2 .. args.len() - 1 {
+        
+        let flag = &args[i];
+
+        if flag == "--volume" {
+
+            let str_volume = &args[i + 1];
+
+            match str_volume.trim().parse::<u8>() {
+                Ok(num) =>  { 
+                    
+                    vol = min(num, 100) as f32 / 100.0;
+
+                    println!("{}[SUCCESS]{} volume setado para {}", GREEN, RESET, (vol * 100.0) as u8);
+
+                }
+                Err(e) => println!("Erro na conversão: {}", e),
+            }
+
+        }
+
+    }
+
     let path = Path::new(&file_path);
 
     let x360_file = match read(path)  {
@@ -59,6 +83,8 @@ fn main() {
     println!("{}[INFO]{} Versão do arquivo: {}", BLUE, RESET, x360_file.version);
 
     println!("{}[INFO]{} Nome do arquivo: {}", BLUE, RESET, std::str::from_utf8(&x360_file.name).unwrap_or("?"));
+
+    println!("{}[INFO]{} Volume: {}", BLUE, RESET, vol);
 
     println!("{}[INFO]{} Notas lidas:", BLUE, RESET);
 
