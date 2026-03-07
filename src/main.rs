@@ -14,6 +14,12 @@ use beep::beep;
 use sleep::sleep;
 use freq_table::FREQ_TABLE;
 
+const RESET: &str = "\x1b[0m";
+const RED: &str = "\x1b[31m";
+const GREEN: &str = "\x1b[32m";
+const YELLOW: &str = "\x1b[33m";
+const BLUE: &str = "\x1b[34m";
+
 fn main() {
 
     let vol: f32 = 0.3;
@@ -29,13 +35,13 @@ fn main() {
         Ok(path) => path,
         Err(_) => {
 
-            println!("[ERROR] O argumento tem que ser um arquivo, animal!");
+            println!("{}[ERROR]{} O argumento tem que ser um arquivo, animal!", RED, RESET);
             
             return;
         },
     };
 
-    println!("[INFO] caminho lido: {}", file_path);
+    println!("{}[INFO]{} caminho lido: {}", BLUE, RESET, file_path);
 
     let path = Path::new(&file_path);
 
@@ -43,18 +49,18 @@ fn main() {
         Ok(x) => x,
         Err(e) => {
 
-            eprintln!("[ERROR] Erro ao processar arquivo: {}", e);
+            eprintln!("{}[ERROR]{} Erro ao processar arquivo: {}", RED, RESET, e);
             
             std::process::exit(1);
 
         },
     };
 
-    println!("[INFO] Versão do arquivo: {}", x360_file.version);
+    println!("{}[INFO]{} Versão do arquivo: {}", BLUE, RESET, x360_file.version);
 
-    println!("[INFO] Nome do arquivo: {}", std::str::from_utf8(&x360_file.name).unwrap_or("?"));
+    println!("{}[INFO]{} Nome do arquivo: {}", BLUE, RESET, std::str::from_utf8(&x360_file.name).unwrap_or("?"));
 
-    println!("[INFO] Notas lidas:");
+    println!("{}[INFO]{} Notas lidas:", BLUE, RESET);
 
     for pair in &x360_file.pairs  {
 
@@ -65,7 +71,7 @@ fn main() {
             None => string_note = "none",
         };
         
-        println!("[MELODY] {}: {}ms", string_note, pair.ms);
+        println!("{}[MELODY]{} {}: {}ms", YELLOW, RESET, string_note, pair.ms);
 
     }
 
@@ -73,7 +79,7 @@ fn main() {
 
         if pair.note == 255 {
         
-            println!("[SONG] 0Hz");
+            println!("{}[SONG]{} 0Hz", GREEN, RESET);
 
             sleep(pair.ms);
 
@@ -83,7 +89,7 @@ fn main() {
 
         let freq: f32 = FREQ_TABLE[pair.note as usize];
 
-        println!("[SONG] {}Hz", freq);
+        println!("{}[SONG]{} {}Hz", GREEN, RESET, freq);
         
         beep(freq, pair.ms, vol);
 
