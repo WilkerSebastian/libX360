@@ -1,7 +1,12 @@
+mod file_format;
+mod read_file;
+mod table_byte_to_note;
+
 use std::env;
-use std::fs::File;
-use std::io::{Read};
 use std::path::Path;
+
+use read_file::read;
+use table_byte_to_note::get_note_by_byte;
 
 fn main() {
     
@@ -16,30 +21,44 @@ fn main() {
         Ok(path) => path,
         Err(_) => {
 
-            println!("[ERROR]: O argumento tem que ser um arquivo, animal!");
+            println!("[ERROR] O argumento tem que ser um arquivo, animal!");
             
             return;
         },
     };
 
+    println!("[INFO] caminho lido: {}", file_path);
+
     let path = Path::new(&file_path);
 
-    let mut file = match File::open(path) {
-        Ok(f) => f,
-        Err(_) => {
+    let x360_file = match read(path)  {
+        Ok(x) => x,
+        Err(e) => {
 
-            println!("[ERROR]: Arquivo não econtrado!");
+            eprintln!("[ERROR] Erro ao processar arquivo: {}", e);
             
-            return;
-        }
+            std::process::exit(1);
+
+        },
     };
 
+    println!("[INFO] Versão do arquivo: {}", x360_file.version);
 
-    let mut buffer = Vec::new();
+    println!("[INFO] Nome do arquivo: {}", std::str::from_utf8(&x360_file.name).unwrap_or("?"));
 
-    let _ = file.read_to_end(&mut buffer);
+    println!("[INFO] Notas lidas:");
 
-    println!("Tamanho lido: {} bytes", buffer.len());
-    println!("Primeiros 5 bytes: {:?}", &buffer[0..5]);    
+    for pair in &x360_file.pairs  {
+
+        let string_note: &str;
+        
+        match get_note_by_byte(pair.note) {
+            Some(s) => string_note = s,
+            None => string_note = "none",
+        };
+        
+        println!("[{}]: {}ms", string_note, pair.ms);
+
+    }
 
 }
