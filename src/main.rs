@@ -23,6 +23,8 @@ const BLUE: &str = "\x1b[34m";
 
 fn main() {
 
+    let mut verbose = false;
+
     let mut vol: f32 = 0.3;
     
     let args: Vec<String> = env::args().collect();
@@ -42,28 +44,37 @@ fn main() {
         },
     };
 
-    println!("{}[INFO]{} caminho lido: {}", BLUE, RESET, file_path);
+    if args.contains(&String::from("--verbose")) {
+        verbose = true;
+        println!("{}[INFO]{} caminho lido: {}", BLUE, RESET, file_path);
+    }
 
     for i in 2 .. args.len() - 1 {
         
-        let flag = &args[i];
+        let flag = args[i].as_str();
 
-        if flag == "--volume" {
+        match flag {
 
-            let str_volume = &args[i + 1];
+            "--volume" => {
 
-            match str_volume.trim().parse::<u8>() {
-                Ok(num) =>  { 
-                    
-                    vol = min(num, 100) as f32 / 100.0;
+                let str_volume = &args[i + 1];
 
-                    println!("{}[SUCCESS]{} volume setado para {}", GREEN, RESET, (vol * 100.0) as u8);
+                match str_volume.trim().parse::<u8>() {
+                    Ok(num) =>  { 
+                        
+                        vol = min(num, 100) as f32 / 100.0;
 
+                        if verbose {
+                            println!("{}[SUCCESS]{} volume setado para {}", GREEN, RESET, (vol * 100.0) as u8);
+                        }
+
+                    }
+                    Err(e) => println!("Erro na conversão: {}", e),
                 }
-                Err(e) => println!("Erro na conversão: {}", e),
-            }
 
-        }
+            },
+            _ => {}
+        };
 
     }
 
@@ -80,13 +91,17 @@ fn main() {
         },
     };
 
-    println!("{}[INFO]{} Versão do arquivo: {}", BLUE, RESET, x360_file.version);
+    if verbose {
 
-    println!("{}[INFO]{} Nome do arquivo: {}", BLUE, RESET, std::str::from_utf8(&x360_file.name).unwrap_or("?"));
+        println!("{}[INFO]{} Versão do arquivo: {}", BLUE, RESET, x360_file.version);
 
-    println!("{}[INFO]{} Volume: {}", BLUE, RESET, vol);
+        println!("{}[INFO]{} Nome do arquivo: {}", BLUE, RESET, std::str::from_utf8(&x360_file.name).unwrap_or("?"));
 
-    println!("{}[INFO]{} Notas lidas:", BLUE, RESET);
+        println!("{}[INFO]{} Volume: {}", BLUE, RESET, vol);
+
+        println!("{}[INFO]{} Notas lidas:", BLUE, RESET);
+
+    }
 
     for pair in &x360_file.pairs  {
 
@@ -97,7 +112,9 @@ fn main() {
             None => string_note = "none",
         };
         
-        println!("{}[MELODY]{} {}: {}ms", YELLOW, RESET, string_note, pair.ms);
+        if verbose {
+            println!("{}[MELODY]{} {}: {}ms", YELLOW, RESET, string_note, pair.ms);
+        }
 
     }
 
@@ -105,7 +122,9 @@ fn main() {
 
         if pair.note == 255 {
         
-            println!("{}[SONG]{} 0Hz", GREEN, RESET);
+            if verbose {
+                println!("{}[SONG]{} 0Hz", GREEN, RESET);
+            }
 
             sleep(pair.ms);
 
@@ -115,8 +134,10 @@ fn main() {
 
         let freq: f32 = FREQ_TABLE[pair.note as usize];
 
-        println!("{}[SONG]{} {}Hz", GREEN, RESET, freq);
-        
+        if verbose {
+            println!("{}[SONG]{} {}Hz", GREEN, RESET, freq);
+        }
+
         beep(freq, pair.ms, vol);
 
     }
