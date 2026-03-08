@@ -1,3 +1,4 @@
 /target
 *.x360
 Cargo.lock
+*.csv
