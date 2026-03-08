@@ -1,7 +1,7 @@
 mod file_format;
 mod read_file;
 mod table_byte_to_note;
-mod beep;
+mod audio;
 mod sleep;
 mod freq_table;
 
@@ -11,7 +11,7 @@ use std::cmp::min;
 
 use read_file::read;
 use table_byte_to_note::get_note_by_byte;
-use beep::beep;
+use audio::AudioPlayer;
 use sleep::sleep;
 use freq_table::FREQ_TABLE;
 
@@ -22,6 +22,8 @@ const YELLOW: &str = "\x1b[33m";
 const BLUE: &str = "\x1b[34m";
 
 fn main() {
+
+    let player = AudioPlayer::new();
 
     let mut verbose = false;
 
@@ -138,7 +140,7 @@ fn main() {
             println!("{}[SONG]{} {}Hz", GREEN, RESET, freq);
         }
 
-        beep(freq, pair.ms, vol);
+        player.beep(freq, pair.ms, vol);
 
     }
 
