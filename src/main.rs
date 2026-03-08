@@ -54,16 +54,18 @@ fn main() {
         info(&format!("Path read: {}", args[1]));
     }
 
-    if args[2] == "-o" {
+    if args.len() > 2 && args[2] == "-o" {
+
+        if args.len() < 4 {
+            error(&"Missing output file. Usage: x360 <input.csv> -o <output.x360>".to_string());
+            std::process::exit(1);
+        }
 
         let data_csv = match read_csv(path) {
             Ok(data) => data,
             Err(e) => {
-
                 error(&e.to_string());
-                
                 std::process::exit(1);
-
             },
         };
 
