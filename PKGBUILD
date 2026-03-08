@@ -1,4 +1,4 @@
-pkgname='libX360'  
+pkgname='libx360-git'  
 pkgver='1.0.0'                
 pkgrel=1                      
 pkgdesc='Tools for working with x360 format media.'
