@@ -2,17 +2,17 @@ mod file_format;
 mod read_file;
 mod table_byte_to_note;
 mod audio;
-mod sleep;
 mod freq_table;
 
 use std::env;
 use std::path::Path;
 use std::cmp::min;
+use std::thread::sleep;
+use std::time::Duration;
 
 use read_file::read;
 use table_byte_to_note::get_note_by_byte;
 use audio::AudioPlayer;
-use sleep::sleep;
 use freq_table::FREQ_TABLE;
 
 const RESET: &str = "\x1b[0m";
@@ -128,7 +128,7 @@ fn main() {
                 println!("{}[SONG]{} 0Hz", GREEN, RESET);
             }
 
-            sleep(pair.ms);
+            sleep(Duration::from_millis(pair.ms as u64));
 
             continue;
 
