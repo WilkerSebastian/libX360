@@ -3,6 +3,7 @@ mod table_byte_to_note;
 mod audio;
 mod freq_table;
 mod read_csv;
+mod view;
 
 use std::env;
 use std::path::Path;
@@ -18,13 +19,13 @@ use freq_table::FREQ_TABLE;
 use read_csv::read_csv;
 
 use crate::file_format::{AudioBlock, X360File};
-
-
-const RESET: &str = "\x1b[0m";
-const RED: &str = "\x1b[31m";
-const GREEN: &str = "\x1b[32m";
-const YELLOW: &str = "\x1b[33m";
-const BLUE: &str = "\x1b[34m";
+use crate::view::error;
+use crate::view::help;
+use crate::view::info;
+use crate::view::melody;
+use crate::view::song;
+use crate::view::success;
+use crate::view::version;
 
 fn main() {
 
@@ -36,8 +37,13 @@ fn main() {
     
     let args: Vec<String> = env::args().collect();
 
-    if args.len() < 2 {
-        println!("Use: {} <filePath>", args[0]);
+    if args.len() < 2 || args[1] == "--help" || args[1] == "-h" {
+        help();
+        return;
+    }
+
+    if args[1] == "--version" || args[1] == "-v" {
+        version();
         return;
     }
 
@@ -45,7 +51,7 @@ fn main() {
 
     if args.contains(&String::from("--verbose")) {
         verbose = true;
-        println!("{}[INFO]{} caminho lido: {}", BLUE, RESET, args[1]);
+        info(&format!("Path read: {}", args[1]));
     }
 
     if args[2] == "-o" {
@@ -54,7 +60,7 @@ fn main() {
             Ok(data) => data,
             Err(e) => {
 
-                println!("{}[ERROR]{} {}", RED, RESET, e);
+                error(&e.to_string());
                 
                 std::process::exit(1);
 
@@ -79,13 +85,13 @@ fn main() {
         match write(Path::new(&args[3]), data) {
             Ok(_) => {
                 if verbose {
-                    println!("{}[SUCCESS]{} escrita do {} feito com sucesso!", GREEN, RESET, args[3]);
+                    success(&format!("Writing the {} successfully completed!", args[3]));
                 }
 
                 std::process::exit(0);
             }
             Err(e) => { 
-                println!("{}[ERROR]{} {}", RED, RESET, e);
+                error(&e.to_string());
 
                 std::process::exit(1);
             }
@@ -109,11 +115,11 @@ fn main() {
                         vol = min(num, 100) as f32 / 100.0;
 
                         if verbose {
-                            println!("{}[SUCCESS]{} volume setado para {}", GREEN, RESET, (vol * 100.0) as u8);
+                            success(&format!("volume set to {}", (vol * 100.0) as u8));
                         }
 
                     }
-                    Err(e) => println!("Erro na conversão: {}", e),
+                    Err(e) => error(&format!("Conversion error: {}", e))
                 }
 
             },
@@ -126,7 +132,7 @@ fn main() {
         Ok(x) => x,
         Err(e) => {
 
-            eprintln!("{}[ERROR]{} Erro ao processar arquivo: {}", RED, RESET, e);
+            error(&format!("Error processing file: {}", e));
             
             std::process::exit(1);
 
@@ -135,13 +141,13 @@ fn main() {
 
     if verbose {
 
-        println!("{}[INFO]{} Versão do arquivo: {}", BLUE, RESET, x360_file.version);
+        info(&format!("File version: {}", x360_file.version));
 
-        println!("{}[INFO]{} Nome do arquivo: {}", BLUE, RESET, std::str::from_utf8(&x360_file.name).unwrap_or("?"));
+        info(&format!("File name: {}", std::str::from_utf8(&x360_file.name).unwrap_or("?")));
 
-        println!("{}[INFO]{} Volume: {}", BLUE, RESET, vol);
+        info(&format!("Volume: {}", vol));
 
-        println!("{}[INFO]{} Notas lidas:", BLUE, RESET);
+        info(&format!("Notes read:"));
 
     }
 
@@ -155,7 +161,7 @@ fn main() {
         };
         
         if verbose {
-            println!("{}[MELODY]{} {}: {}ms", YELLOW, RESET, string_note, pair.ms);
+            melody(&format!("{}: {}ms", string_note, pair.ms));
         }
 
     }
@@ -165,7 +171,7 @@ fn main() {
         if pair.note == 255 {
         
             if verbose {
-                println!("{}[SONG]{} 0Hz", GREEN, RESET);
+                song(&"0Hz".to_string());
             }
 
             sleep(Duration::from_millis(pair.ms as u64));
@@ -177,7 +183,7 @@ fn main() {
         let freq: f32 = FREQ_TABLE[pair.note as usize];
 
         if verbose {
-            println!("{}[SONG]{} {}Hz", GREEN, RESET, freq);
+            song(&format!("{}Hz", freq));
         }
 
         player.beep(freq, pair.ms, vol);
