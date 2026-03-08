@@ -2,3 +2,7 @@
 *.x360
 Cargo.lock
 *.csv
+libX360-1.0.0
+pkg
+*.pkg.tar.zst
+*.src.tar.gz
